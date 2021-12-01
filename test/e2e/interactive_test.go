@@ -23,8 +23,10 @@ func TestInteractiveSetup(t *testing.T) {
 	_, token, rateLimiterAddr := startBaseServices(t, e, interactive)
 	readEndpoint, writeEndpoint, readExtEndpoint := startServicesForMetrics(t, e)
 	logsEndpoint, logsExtEndpoint := startServicesForLogs(t, e)
-	tracesReadEndpoint := "localhost:16686" // @@@ TODO get dynamic test Jaeger
-	tracesWriteEndpoint := "localhost:4317" // @@@ TODO get dynamic test Jaeger
+	// @@@ TODO get dynamic test Jaeger.  Use localhost:16686 on Linux
+	tracesReadEndpoint := "docker.for.mac.localhost:16686"
+	// @@@ TODO get dynamic test Jaeger
+	tracesWriteEndpoint := "docker.for.mac.localhost:4317"
 
 	api, err := newObservatoriumAPIService(
 		e,

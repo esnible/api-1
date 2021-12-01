@@ -600,8 +600,6 @@ func main() {
 
 			// Traces.
 			if cfg.traces.enabled {
-				level.Info(logger).Log("msg", "@@@ ecs remove setting up traces", "tenant-header", cfg.traces.tenantHeader)
-
 				r.Group(func(r chi.Router) {
 					r.Use(authentication.WithTenantMiddlewares(pm.Middlewares))
 					r.Use(authentication.WithTenantHeader(cfg.traces.tenantHeader, tenantIDs))

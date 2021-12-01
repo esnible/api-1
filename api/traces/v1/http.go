@@ -2,7 +2,6 @@
 package http
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -123,15 +122,6 @@ func NewHandler(read, write *url.URL, opts ...HandlerOption) http.Handler {
 				Transport:    otelhttp.NewTransport(t),
 				ErrorHandler: func(rw http.ResponseWriter, r *http.Request, e error) {},
 			}
-
-			// @@@ TODO REMOVE
-			proxyRead.(*httputil.ReverseProxy).ErrorHandler = func(rw http.ResponseWriter, r *http.Request, err error) {
-				level.Info(c.logger).Log("msg", "@@@ ecs http: proxy error", "err", err,
-					"requestwas", fmt.Sprintf("%#v", r),
-					"url", r.URL.String())
-				rw.WriteHeader(http.StatusBadGateway)
-			}
-
 		}
 		r.Group(func(r chi.Router) {
 			r.Use(c.readMiddlewares...)
@@ -141,20 +131,14 @@ func NewHandler(read, write *url.URL, opts ...HandlerOption) http.Handler {
 				operationsRoute = "/api/v3/operations"
 			)
 			r.Handle(queryRoute, c.instrument.NewHandler(
-				prometheus.Labels{"group": "logsv1", "handler": "query"}, proxyRead))
-			// @@@,
-			// otelhttp.WithRouteTag(c.spanRoutePrefix+queryRoute, proxyRead),
-			//))
+				prometheus.Labels{"group": "logsv1", "handler": "query"},
+				otelhttp.WithRouteTag(c.spanRoutePrefix+queryRoute, proxyRead)))
 			r.Handle(servicesRoute, c.instrument.NewHandler(
-				prometheus.Labels{"group": "logsv1", "handler": "query_range"}, proxyRead))
-			// ,
-			// otelhttp.WithRouteTag(c.spanRoutePrefix+servicesRoute, proxyRead),
-			// ))
+				prometheus.Labels{"group": "logsv1", "handler": "query_range"},
+				otelhttp.WithRouteTag(c.spanRoutePrefix+servicesRoute, proxyRead)))
 			r.Handle(operationsRoute, c.instrument.NewHandler(
-				prometheus.Labels{"group": "logsv1", "handler": "query_range"}, proxyRead))
-			//,
-			//otelhttp.WithRouteTag(c.spanRoutePrefix+operationsRoute, proxyRead),
-			//))
+				prometheus.Labels{"group": "logsv1", "handler": "query_range"},
+				otelhttp.WithRouteTag(c.spanRoutePrefix+operationsRoute, proxyRead)))
 		})
 	}
 
